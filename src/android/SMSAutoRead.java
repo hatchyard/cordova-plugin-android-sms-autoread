@@ -28,87 +28,90 @@ import java.util.regex.Pattern;
  */
 public class SMSAutoRead extends CordovaPlugin {
 
-  BroadcastReceiver smsBroadcastReceiver;
-  private static final int REQ_USER_CONSENT = 200;
-  private CallbackContext callback = null;
-  private CordovaPlugin plugin = null;
+    BroadcastReceiver smsBroadcastReceiver;
+    private static final int REQ_USER_CONSENT = 200;
+    private CallbackContext callback = null;
+    private CordovaPlugin plugin = null;
 
-  @Override
-  public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-    this.callback = callbackContext;
-    this.plugin = this;
-    if (action.equals("start")) {
-      this.start();
-      return true;
-    } else if (action.equals("startWatching")) {
-      this.startWatching();
-      return true;
-    } else if (action.equals("stop")) {
-      this.stop();
-      return true;
-    }
-    return false;
-  }
-
-  private void start() {
-    smsBroadcastReceiver = new BroadcastReceiver() {
-      @Override
-      public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals(SmsRetriever.SMS_RETRIEVED_ACTION)) {
-          Bundle extras = intent.getExtras();
-
-          Status smsRetrieverStatus = (Status) extras.get(SmsRetriever.EXTRA_STATUS);
-
-          switch (smsRetrieverStatus.getStatusCode()) {
-          case CommonStatusCodes
-          .SUCCESS:
-            Intent messageIntent = extras.getParcelable(SmsRetriever.EXTRA_CONSENT_INTENT);
-            cordova.startActivityForResult(plugin, messageIntent, REQ_USER_CONSENT);
-            break;
-          case CommonStatusCodes.TIMEOUT:
-            break;
-          }
+    @Override
+    public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+        this.callback = callbackContext;
+        this.plugin = this;
+        if (action.equals("start")) {
+            this.start();
+            return true;
+        } else if (action.equals("startWatching")) {
+            this.startWatching();
+            return true;
+        } else if (action.equals("stop")) {
+            this.stop();
+            return true;
         }
-      }
-    };
-
-    IntentFilter intentFilter = new IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION);
-    cordova.getActivity().getApplicationContext().registerReceiver(smsBroadcastReceiver, intentFilter);
-  }
-
-  private void startWatching() {
-    SmsRetrieverClient client = SmsRetriever.getClient(cordova.getActivity().getApplicationContext());
-    client.startSmsUserConsent(null);
-  }
-
-  private void stop() {
-    cordova.getActivity().getApplicationContext().unregisterReceiver(smsBroadcastReceiver);
-  }
-
-  private String getOtpFromMessage(String message) {
-    Pattern otpPattern = Pattern.compile("(|^)\\d{4}");
-    Matcher matcher = otpPattern.matcher(message);
-
-    if (matcher.find()) {
-      return matcher.group(0);
+        return false;
     }
 
-    return "Not Found";
-  }
+    private void start() {
+        if (smsBroadcastReceiver == null) {
+            smsBroadcastReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if (intent.getAction().equals(SmsRetriever.SMS_RETRIEVED_ACTION)) {
+                        Bundle extras = intent.getExtras();
 
-  @Override
-  public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-    super.onActivityResult(requestCode, resultCode, intent);
+                        Status smsRetrieverStatus = (Status) extras.get(SmsRetriever.EXTRA_STATUS);
 
-    if (requestCode == REQ_USER_CONSENT) {
-      if ((resultCode == Activity.RESULT_OK) && (intent != null)) {
-        String message = intent.getStringExtra(SmsRetriever.EXTRA_SMS_MESSAGE);
-        String otpMsg = getOtpFromMessage(message);
-        PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, otpMsg);
-        callback.sendPluginResult(pluginResult);
-      } else {
-        this.startWatching();
-      }
+                        switch (smsRetrieverStatus.getStatusCode()) {
+                            case CommonStatusCodes
+                            .SUCCESS:
+                                Intent messageIntent = extras.getParcelable(SmsRetriever.EXTRA_CONSENT_INTENT);
+                                cordova.startActivityForResult(plugin, messageIntent, REQ_USER_CONSENT);
+                                break;
+                            case CommonStatusCodes.TIMEOUT:
+                                break;
+                        }
+                    }
+                }
+            };
+
+            IntentFilter intentFilter = new IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION);
+            cordova.getActivity().getApplicationContext().registerReceiver(smsBroadcastReceiver, intentFilter);
+        }
     }
-  }
+
+    private void startWatching() {
+        SmsRetrieverClient client = SmsRetriever.getClient(cordova.getActivity().getApplicationContext());
+        client.startSmsUserConsent(null);
+    }
+
+    private void stop() {
+        cordova.getActivity().getApplicationContext().unregisterReceiver(smsBroadcastReceiver);
+        this.smsBroadcastReceiver = null;
+    }
+
+    private String getOtpFromMessage(String message) {
+        Pattern otpPattern = Pattern.compile("(|^)\\d{4}");
+        Matcher matcher = otpPattern.matcher(message);
+
+        if (matcher.find()) {
+            return matcher.group(0);
+        }
+
+        return "Not Found";
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+
+        if (requestCode == REQ_USER_CONSENT) {
+            if ((resultCode == Activity.RESULT_OK) && (intent != null)) {
+                String message = intent.getStringExtra(SmsRetriever.EXTRA_SMS_MESSAGE);
+                String otpMsg = getOtpFromMessage(message);
+                PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, otpMsg);
+                callback.sendPluginResult(pluginResult);
+            } else {
+                this.startWatching();
+            }
+        }
+    }
 }
