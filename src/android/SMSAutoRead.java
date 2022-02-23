@@ -6,7 +6,6 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -32,20 +31,28 @@ public class SMSAutoRead extends CordovaPlugin {
     private static final int REQ_USER_CONSENT = 200;
     private CallbackContext callback = null;
     private CordovaPlugin plugin = null;
+    private int otpLength = 4;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         this.callback = callbackContext;
         this.plugin = this;
-        if (action.equals("start")) {
-            this.start();
-            return true;
-        } else if (action.equals("startWatching")) {
-            this.startWatching();
-            return true;
-        } else if (action.equals("stop")) {
-            this.stop();
-            return true;
+        switch (action) {
+            case "start":
+                int tempOtpLength = args.getInt(0);
+
+                if (tempOtpLength != 0) {
+                    otpLength = tempOtpLength;
+                }
+
+                this.start();
+                return true;
+            case "startWatching":
+                this.startWatching();
+                return true;
+            case "stop":
+                this.stop();
+                return true;
         }
         return false;
     }
@@ -61,8 +68,7 @@ public class SMSAutoRead extends CordovaPlugin {
                         Status smsRetrieverStatus = (Status) extras.get(SmsRetriever.EXTRA_STATUS);
 
                         switch (smsRetrieverStatus.getStatusCode()) {
-                            case CommonStatusCodes
-                            .SUCCESS:
+                            case CommonStatusCodes.SUCCESS:
                                 Intent messageIntent = extras.getParcelable(SmsRetriever.EXTRA_CONSENT_INTENT);
                                 cordova.startActivityForResult(plugin, messageIntent, REQ_USER_CONSENT);
                                 break;
@@ -89,7 +95,8 @@ public class SMSAutoRead extends CordovaPlugin {
     }
 
     private String getOtpFromMessage(String message) {
-        Pattern otpPattern = Pattern.compile("(|^)\\d{4}");
+        String mask = "(|^)\\d{"+otpLength+"}";
+        Pattern otpPattern = Pattern.compile(mask);
         Matcher matcher = otpPattern.matcher(message);
 
         if (matcher.find()) {
