@@ -62,7 +62,7 @@ public class SMSAutoRead extends CordovaPlugin {
 
                         switch (smsRetrieverStatus.getStatusCode()) {
                             case CommonStatusCodes.SUCCESS:
-                                if (cordova.getActivity().getPackageName().contains("com.directfn.mobile.falcom")) {
+                                if (cordova.getActivity().getPackageName().contains("com.directfn")) {
                                     Intent messageIntent = extras.getParcelable(SmsRetriever.EXTRA_CONSENT_INTENT);
                                     cordova.startActivityForResult(plugin, messageIntent, REQ_USER_CONSENT);
                                 }
