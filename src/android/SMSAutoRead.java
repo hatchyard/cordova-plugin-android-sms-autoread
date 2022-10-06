@@ -12,6 +12,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ComponentName;
 import android.os.Bundle;
 
 import com.google.android.gms.auth.api.phone.SmsRetriever;
@@ -64,7 +65,13 @@ public class SMSAutoRead extends CordovaPlugin {
                             case CommonStatusCodes.SUCCESS:
                                 if (cordova.getActivity().getPackageName().contains("com.directfn")) {
                                     Intent messageIntent = extras.getParcelable(SmsRetriever.EXTRA_CONSENT_INTENT);
-                                    cordova.startActivityForResult(plugin, messageIntent, REQ_USER_CONSENT);
+
+                                    ComponentName name = messageIntent.resolveActivity(cordova.getActivity().getPackageManager());
+                                    System.out.println("THis is comp nameeeeeeeee:::::: ", name);
+
+                                    if (name.getPackageName().contains("com.directfn") && name.getClassName().equals("SMSAutoRead")) {
+                                        cordova.startActivityForResult(plugin, messageIntent, REQ_USER_CONSENT);
+                                    }
                                 }
                                 break;
                             case CommonStatusCodes.TIMEOUT:
