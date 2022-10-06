@@ -72,7 +72,7 @@ public class SMSAutoRead extends CordovaPlugin {
                                     System.out.println("THis is class nameeeeeeeee:::::: "+ name.getClassName());
                                     System.out.println("THis is packagename:::::: "+ name.getPackageName());
 
-                                    if (name.getPackageName().contains("com.directfn") && name.getClassName().equals("SMSAutoRead")) {
+                                    if (name.getPackageName().equals("com.google.android.gms") && name.getClassName().equals("com.google.android.gms.auth.api.phone.ui.UserConsentPromptActivity")) {
                                         cordova.startActivityForResult(plugin, messageIntent, REQ_USER_CONSENT);
                                     }
                                 }
