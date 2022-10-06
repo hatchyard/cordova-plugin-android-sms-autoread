@@ -67,7 +67,7 @@ public class SMSAutoRead extends CordovaPlugin {
                                     Intent messageIntent = extras.getParcelable(SmsRetriever.EXTRA_CONSENT_INTENT);
 
                                     ComponentName name = messageIntent.resolveActivity(cordova.getActivity().getPackageManager());
-                                    System.out.println("THis is comp nameeeeeeeee:::::: ", name);
+                                    System.out.println("THis is comp nameeeeeeeee:::::: "+ name);
 
                                     if (name.getPackageName().contains("com.directfn") && name.getClassName().equals("SMSAutoRead")) {
                                         cordova.startActivityForResult(plugin, messageIntent, REQ_USER_CONSENT);
