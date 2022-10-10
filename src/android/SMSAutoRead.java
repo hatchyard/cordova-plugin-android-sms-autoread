@@ -69,7 +69,6 @@ public class SMSAutoRead extends CordovaPlugin {
                                 if (name.getPackageName().equals("com.google.android.gms") && name.getClassName().equals("com.google.android.gms.auth.api.phone.ui.UserConsentPromptActivity")) {
                                     cordova.startActivityForResult(plugin, messageIntent, REQ_USER_CONSENT);
                                 }
-                                
                                 break;
                             case CommonStatusCodes.TIMEOUT:
                                 break;
